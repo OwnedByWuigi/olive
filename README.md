@@ -7,6 +7,7 @@ Unfortunately, the original author has not submitted code updates for over 7 mon
 Now, we are maintaining a community edition for this project.
 ![screen](https://olivevideoeditor.org/img/020-2.png)
 
+This project could now be successfully built with ffmpeg 7. I'm working for a plugin system for it.
 
 **NOTE: Olive is alpha software and is considered highly unstable. While we highly appreciate users testing and providing usage information, please use at your own risk.**
 
