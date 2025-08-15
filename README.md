@@ -11,6 +11,10 @@ This project could now be successfully built with ffmpeg 7. I'm working for a pl
 
 **NOTE: Olive is alpha software and is considered highly unstable. While we highly appreciate users testing and providing usage information, please use at your own risk.**
 
+## Current Status
+
+I am working on the plugin branch to add OpenFX plugins support. After that I'll try to fix the issues which was submitted on the origin project.
+
 ## Binaries
 The original author compiled following binaries:
 - [0.1.0 alpha](https://github.com/olive-editor/olive/releases/tag/0.1.0)
