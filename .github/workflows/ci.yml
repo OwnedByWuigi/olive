@@ -30,13 +30,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Clang should catch any issues that GCC would also report
-          #- build-type: RelWithDebInfo
-          #  cc-compiler: gcc
-          #  cxx-compiler: g++
-          #  compiler-name: GCC 9.3.1
-          #  cmake-gen: Ninja
-          #  os-name: Linux (CentOS 7)
           - build-type: RelWithDebInfo
             cc-compiler: clang
             cxx-compiler: clang++
@@ -72,9 +65,6 @@ jobs:
           $DOWNLOAD_TOOL https://raw.githubusercontent.com/actions/checkout/refs/tags/v3/dist/problem-matcher.json
           cd ..
           ${{ github.workspace }}/node16 ./checkout-v3/index.js
-        #uses: actions/checkout@v3
-        #with:
-        #  submodules: true
 
       - name: Generate Patreon List
         env:
@@ -161,16 +151,12 @@ jobs:
           ACTIONS_RUNTIME_TOKEN: ${{ steps.envs.outputs.ACTIONS_RUNTIME_TOKEN }}
           ACTIONS_RUNTIME_URL: ${{ steps.envs.outputs.ACTIONS_RUNTIME_URL }}
         run: |
-          mkdir upload-artifact-v3
-          cd upload-artifact-v3
-          $DOWNLOAD_TOOL https://raw.githubusercontent.com/actions/upload-artifact/refs/tags/v3/dist/index.js
+          mkdir upload-artifact-v4
+          cd upload-artifact-v4
+          $DOWNLOAD_TOOL https://raw.githubusercontent.com/actions/upload-artifact/refs/tags/v4/dist/index.js
           cd ..
-          ${{ github.workspace }}/node16 ./upload-artifact-v3/index.js
+          ${{ github.workspace }}/node16 ./upload-artifact-v4/index.js
         continue-on-error: true
-        #uses: actions/upload-artifact@v3
-        #with:
-        #  name: ${{ steps.package.outputs.artifact }}
-        #  path: build/Olive*.AppImage
 
   windows:
     strategy:
@@ -180,7 +166,7 @@ jobs:
             compiler-name: MSVC 16.x
             os-name: Windows
             os-arch: x86_64
-            os: windows-2019
+            os: windows-2025
             cmake-gen: Ninja
     name: |
       ${{ matrix.os-name }}
@@ -196,7 +182,6 @@ jobs:
           submodules: true
           show-progress: false
 
-      # HACK: Override CMake version to avoid an FFmpeg discovery problem
       - name: Setup CMake
         uses: jwlawson/actions-setup-cmake@v2
         with:
@@ -262,12 +247,6 @@ jobs:
         run: |
           cmake --build .
 
-      #- name: Test
-      #  working-directory: ${{ runner.workspace }}/build
-      #  shell: bash
-      #  run: |
-      #    ctest -C ${{ matrix.build-type }} -V
-
       - name: Create Package
         working-directory: ${{ runner.workspace }}/build
         shell: bash
@@ -290,7 +269,7 @@ jobs:
         run: |
           curl -fLSs https://github.com/google/breakpad/blob/master/src/tools/windows/binaries/dump_syms.exe?raw=true > dump_syms.exe
           ./dump_syms app/olive-editor.pdb > olive-editor.sym
-          SYM_HEADER=($(head -n 1 olive-editor.sym)) # Read first line of symbol file
+          SYM_HEADER=($(head -n 1 olive-editor.sym))
           SYM_DIR=olive-editor/symbols/olive-editor.pdb/${SYM_HEADER[3]}
           mkdir -p "$SYM_DIR"
           mv olive-editor.sym "$SYM_DIR"
@@ -299,27 +278,23 @@ jobs:
         working-directory: ${{ runner.workspace }}/build
         shell: bash
         run: |
-          # Create Installer Executable
-          #$DOWNLOAD_TOOL http://web.archive.org/web/20210226132532/http://download.microsoft.com/download/3/2/2/3224B87F-CFA0-4E70-BDA3-3DE650EFEBA5/vcredist_x64.exe
           cp $(cygpath $GITHUB_WORKSPACE)/app/packaging/windows/nsis/* .
           cp $(cygpath $GITHUB_WORKSPACE)/LICENSE .
           $DOWNLOAD_TOOL https://nsis.sourceforge.io/mediawiki/images/6/68/ShellExecAsUser_amd64-Unicode.7z
           7z e ShellExecAsUser_amd64-Unicode.7z Plugins/x86-unicode/ShellExecAsUser.dll
           makensis -V4 -DX64 "-XOutFile $PKGNAME.exe" "-X!AddPluginDir /x86-unicode $(pwd -W)" olive.nsi
-
-          # Create Portable ZIP
           echo -n > olive-editor/portable
           mkdir deploy
           mv olive-editor deploy
 
       - name: Upload Installer Artifact to GitHub
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PKGNAME }}-Installer
           path: ${{ runner.workspace }}/build/${{ env.PKGNAME }}.exe
 
       - name: Upload Portable Artifact to GitHub
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PKGNAME }}-Portable
           path: ${{ runner.workspace }}/build/deploy
@@ -340,7 +315,7 @@ jobs:
             compiler-name: Clang LLVM
             os-name: macOS
             os-arch: arm64
-            os: macos-13
+            os: macos-14
             cmake-gen: Ninja
             min-deploy: 11.0
     env:
@@ -423,7 +398,7 @@ jobs:
         shell: bash
         run: |
           ctest -C ${{ matrix.build-type }} -V
-        if: matrix.os-arch == 'x86_64' # ARM64 tests naturally won't be able to run on x86_64 runners
+        if: matrix.os-arch == 'x86_64'
 
       - name: Bundle Application
         working-directory: ${{ runner.workspace }}/build
@@ -438,20 +413,16 @@ jobs:
           mv ../app/$BUNDLE_NAME .
           mkdir $BUNDLE_NAME/Contents/Frameworks
 
-          # Copy Qt frameworks and plugins
           cp -Ra $DEP_LOCATION/lib/Qt*.framework $BUNDLE_NAME/Contents/Frameworks
           cp -Ra $DEP_LOCATION/plugins $BUNDLE_NAME/Contents
 
           dylibbundler -b -ns -x "$BUNDLE_NAME/Contents/MacOS/Olive" -s "$DEP_LOCATION/lib" -d "$BUNDLE_NAME/Contents/Frameworks" -p "@executable_path/../Frameworks" \
             -x $BUNDLE_NAME/Contents/MacOS/olive-crashhandler -x $BUNDLE_NAME/Contents/Frameworks/QtNetwork.framework/Versions/5/QtNetwork
 
-          # HACK: On x86_64, dylibbundler doesn't resolve this symlink. Weirdly it does on ARM64,
-          #       but perhaps I'll bring it up with them soon.
           cp -a $BUNDLE_NAME/Contents/Frameworks/libpng16.16.37.0.dylib $BUNDLE_NAME/Contents/Frameworks/libpng16.16.dylib
 
-          # Crashpad symbols
           $DEP_LOCATION/bin/dump_syms $BUNDLE_NAME/Contents/MacOS/Olive > Olive.sym
-          SYM_HEADER=($(head -n 1 Olive.sym)) # Read first line of symbol file
+          SYM_HEADER=($(head -n 1 Olive.sym))
           SYM_DIR=$BUNDLE_NAME/Contents/Resources/symbols/Olive/${SYM_HEADER[3]}
           mkdir -p "$SYM_DIR"
           mv Olive.sym "$SYM_DIR"
@@ -466,36 +437,24 @@ jobs:
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
           BUNDLE_NAME="Olive.app"
-
-          # Install certificate
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-
-          # import certificate from secrets
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > $CERTIFICATE_PATH
-
-          # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-
-          # import certificate to keychain
           security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
-
-          # HACK: Remove unsignable frameworks
           rm -r $BUNDLE_NAME/Contents/Frameworks/QtUiPlugin.framework
           if [ "${{ matrix.os-arch }}" == "arm64" ]
           then
             rm -r $BUNDLE_NAME/Contents/Frameworks/QtZlib.framework
           fi
-
-          # Sign application
           codesign --deep --sign "Developer ID Application: Olive Studios LLC" $BUNDLE_NAME
 
       - name: Deploy
-        shell: bash
         working-directory: ${{ runner.workspace }}/build/deploy-${{ matrix.os-arch }}
+        shell: bash
         run: |
           ln -s /Applications Applications
           cd ..
@@ -503,7 +462,7 @@ jobs:
           hdiutil convert img-${{ matrix.os-arch }}.dmg -format UDZO -o $PKGNAME.dmg
 
       - name: Upload Artifact to GitHub
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         continue-on-error: true
         with:
           name: ${{ env.PKGNAME }}
