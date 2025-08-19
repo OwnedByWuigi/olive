@@ -1,12 +1,11 @@
-# Contributing to Olive
+# Contributing to Olive Community Edition
 
-Thank you for your interest in contributing to Olive!
+Thank you for your interest in contributing to Olive and/or the Community Edition!
 
 ## Reporting issues
 
 Bug reports help to make the software more stable and usable.
-Please read the pinned [issue #1175](https://github.com/olive-editor/olive/issues/1175)
-for guidelines before you create a new issue.
+Please read the pinned [issue #1175 on the original project's repo](https://github.com/olive-editor/olive/issues/1175) for guidelines before you create a new issue.
 
 ## Writing code
 
