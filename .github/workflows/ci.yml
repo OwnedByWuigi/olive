@@ -208,7 +208,7 @@ jobs:
         shell: bash
         working-directory: ${{ runner.workspace }}
         run: |
-          $DOWNLOAD_TOOL https://github.com/olive-editor/dependencies/releases/download/continuous/olive-dep-win32-Release.tar.gz
+          $DOWNLOAD_TOOL https://github.com/OliveCommunity/dependencies/releases/download/continuous/olive-dep-win32-Release.tar.gz
           tar xzf olive-dep-win32-Release.tar.gz
           echo "$(pwd -W)/install" >> $GITHUB_PATH
           echo "$(pwd -W)/install/bin" >> $GITHUB_PATH
@@ -217,7 +217,7 @@ jobs:
         shell: bash
         working-directory: ${{ runner.workspace }}
         run: |
-          $DOWNLOAD_TOOL https://github.com/olive-editor/crashpad/releases/download/continuous/crashpad-win32-RelWithDebInfo.tar.gz
+          $DOWNLOAD_TOOL https://github.com/OliveCommunity/crashpad/releases/download/continuous/crashpad-win32-RelWithDebInfo.tar.gz
           tar xzf crashpad-win32-RelWithDebInfo.tar.gz
           echo "$(pwd -W)/install" >> $GITHUB_PATH
           echo "$(pwd -W)/install/bin" >> $GITHUB_PATH
@@ -351,14 +351,14 @@ jobs:
         shell: bash
         working-directory: ${{ runner.workspace }}
         run: |
-          $DOWNLOAD_TOOL https://github.com/olive-editor/dependencies/releases/download/continuous/olive-dep-mac-${{ matrix.os-arch }}.tar.gz
+          $DOWNLOAD_TOOL https://github.com/OliveCommunity/dependencies/releases/download/continuous/olive-dep-mac-${{ matrix.os-arch }}.tar.gz
           sudo tar xzf olive-dep-mac-${{ matrix.os-arch }}.tar.gz -C /
 
       - name: Acquire Google Crashpad
         shell: bash
         working-directory: ${{ runner.workspace }}
         run: |
-          $DOWNLOAD_TOOL https://github.com/olive-editor/crashpad/releases/download/continuous/crashpad-mac-${{ matrix.os-arch }}.tar.gz
+          $DOWNLOAD_TOOL https://github.com/OliveCommunity/crashpad/releases/download/continuous/crashpad-mac-${{ matrix.os-arch }}.tar.gz
           sudo tar xzf crashpad-mac-${{ matrix.os-arch }}.tar.gz -C /
 
       - name: Generate Patreon List
