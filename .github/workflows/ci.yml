@@ -55,16 +55,10 @@ jobs:
           ${{ github.workspace }}/node16 --version
 
       - name: Checkout Source Code
-        env:
-          INPUT_SUBMODULES: 'true'
-          INPUT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          mkdir checkout-v3
-          cd checkout-v3
-          $DOWNLOAD_TOOL https://raw.githubusercontent.com/actions/checkout/refs/tags/v3/dist/index.js
-          $DOWNLOAD_TOOL https://raw.githubusercontent.com/actions/checkout/refs/tags/v3/dist/problem-matcher.json
-          cd ..
-          ${{ github.workspace }}/node16 ./checkout-v3/index.js
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          show-progress: false
 
       - name: Generate Patreon List
         env:
